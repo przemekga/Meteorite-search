@@ -13,6 +13,9 @@
       <button id='show' type="button" name="button">show meteorite</button>
       <div>
         <h1 id="description"></h1>
+        <script id="meteorite-template" type="x-tmpl-mustache">
+          <h2>{{name}}</h2>
+        </script>
       </div>
       <div id="map"></div>
     </div>
@@ -20,6 +23,7 @@
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_scvXKRhizX9shX2cgkc4ZxyG-cin8tg">
     </script>
+    <script src="node_modules/mustache/mustache.min.js"></script>
     <script type="text/javascript" src="./js/src/script.js"></script>
   </body>
 </html>

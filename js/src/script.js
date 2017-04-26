@@ -6,6 +6,7 @@ const meteoriteModule = {
     this.cacheDOM();
     this.getMeteorites();
     this.bindEvents();
+    this.render();
   },
 
   cacheDOM: function() {
@@ -14,13 +15,21 @@ const meteoriteModule = {
       this.map = this.app.querySelector('#map');
       this.description = this.app.querySelector('#description');
       this.show = this.app.querySelector('#show');
+      this.h2 = this.app.querySelector('h2');
+      this.template = this.app.querySelector('#meteorite-template').innerHTML;
     }
   },
 
   bindEvents: function () {
     if (this.show) {
-      this.show.addEventListener('click', this.showMeteorite);
+      this.show.addEventListener('click', () => {
+        this.showMeteorite();
+      })
     }
+  },
+
+  render: function () {
+
   },
 
   getMeteorites: function () {
@@ -47,8 +56,9 @@ const meteoriteModule = {
 
   showMeteorite: function () {
     const meteorite = this.getRandomMeteoriteFrom(this.meteorites);
-    const coordinates = {lat: meteorite.geolocation.coordinates[1], lng: meteorite.geolocation.coordinates[0]};
     this.description.innerHTML = `Name: ${meteorite.name} Year: ${meteorite.year.slice(0, 4)} Weight: (${meteorite.mass / 1000}kg)`;
+    this.h2 = Mustache.render(this.template, {name: meteorite.name});
+    const coordinates = {lat: meteorite.geolocation.coordinates[1], lng: meteorite.geolocation.coordinates[0]};
     this.initMap(coordinates);
   }
 };
