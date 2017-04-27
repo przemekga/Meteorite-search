@@ -1,44 +1,30 @@
-const meteoriteModule = {
+const meteoriteModule = (function(){
 
-  meteorites: [],
+  const app = document.getElementById('app');
+  const map = app.querySelector('#map');
+  const description = app.querySelector('#description');
+  const show = app.querySelector('#show');
+  const loadList = app.querySelector('#load-list');
+  let meteoriteList = app.querySelector('#meteorite-list');
+  const meteoriteListTemplate = app.querySelector('#meteorite-list-template').innerHTML;
 
-  init: function () {
-    this.cacheDOM();
-    this.getMeteorites();
-    this.bindEvents();
-    this.render();
-  },
+  const meteorites = [];
 
-  cacheDOM: function() {
-    if(document.getElementById('app')) {
-      this.app = document.getElementById('app');
-      this.map = this.app.querySelector('#map');
-      this.description = this.app.querySelector('#description');
-      this.show = this.app.querySelector('#show');
-      this.h2 = this.app.querySelector('h2');
-      this.template = this.app.querySelector('#meteorite-template').innerHTML;
-    }
-  },
+  fetch('https://data.nasa.gov/resource/y77d-th95.json')
+    .then(result => result.json())
+    .then(data => meteorites.push(...data));
 
-  bindEvents: function () {
-    if (this.show) {
-      this.show.addEventListener('click', () => {
-        this.showMeteorite();
-      })
-    }
-  },
 
-  render: function () {
+  show.addEventListener('click', showMeteorite);
+  loadList.addEventListener('click', loadMeteoriteList);
 
-  },
 
-  getMeteorites: function () {
-    return fetch('https://data.nasa.gov/resource/y77d-th95.json')
-              .then(result => result.json())
-              .then(data => meteoriteModule.meteorites.push(...data));
-  },
+  function render() {
 
-  initMap: function (meteoriteCoordinates) {
+  }
+
+
+  function initMap(meteoriteCoordinates) {
     const map = new google.maps.Map(this.map, {
       zoom: 4,
       center: meteoriteCoordinates
@@ -47,19 +33,31 @@ const meteoriteModule = {
       position: meteoriteCoordinates,
       map: map
     })
-  },
+  }
 
-  getRandomMeteoriteFrom: function (meteoriteList) {
+  function getRandomMeteoriteFrom(meteoriteList) {
     const randomNumber = Math.floor(Math.random() * meteoriteList.length);
     return meteoriteList[randomNumber];
-  },
-
-  showMeteorite: function () {
-    const meteorite = this.getRandomMeteoriteFrom(this.meteorites);
-    this.description.innerHTML = `Name: ${meteorite.name} Year: ${meteorite.year.slice(0, 4)} Weight: (${meteorite.mass / 1000}kg)`;
-    this.h2 = Mustache.render(this.template, {name: meteorite.name});
-    const coordinates = {lat: meteorite.geolocation.coordinates[1], lng: meteorite.geolocation.coordinates[0]};
-    this.initMap(coordinates);
   }
-};
-meteoriteModule.init();
+
+  function showMeteorite() {
+    const meteorite = getRandomMeteoriteFrom(meteorites);
+    description.innerHTML = `Name: ${meteorite.name} Year: ${meteorite.year.slice(0, 4)} Weight: ${meteorite.mass / 1000}kg`;
+    // const rendered = Mustache.render(this.template, meteorite);
+    // this.description.innerHTML = rendered;
+    const coordinates = {lat: meteorite.geolocation.coordinates[1], lng: meteorite.geolocation.coordinates[0]};
+    initMap(coordinates);
+  }
+
+  function loadMeteoriteList() {
+    const meteoriteListFragment = {
+      meteorite: [...meteorites.slice(0, 100)]
+    };
+    console.log(meteoriteListFragment);
+    meteoriteList.innerHTML = Mustache.render(meteoriteListTemplate, meteoriteListFragment);
+  }
+
+  return {
+    render: render
+  }
+})();
