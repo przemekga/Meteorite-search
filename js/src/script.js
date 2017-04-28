@@ -7,31 +7,45 @@ const meteoriteModule = (function(){
   const loadList = app.querySelector('#load-list');
   let meteoriteList = app.querySelector('#meteorite-list');
   const meteoriteListTemplate = app.querySelector('#meteorite-list-template').innerHTML;
+  const showAllCheckbox = app.querySelector('#show-all');
 
   const meteorites = [];
 
   fetch('https://data.nasa.gov/resource/y77d-th95.json')
     .then(result => result.json())
-    .then(data => meteorites.push(...data));
+    .then(data => {
+        const mappedMeteorites = data.map(item => {
+          if (item.year){
+            item.year = item.year.slice(0,4);
+          }
+          item.mass = item.mass / 1000;
+          return item;
+        });
+        meteorites.push(...mappedMeteorites);
+    });
 
 
   show.addEventListener('click', showMeteorite);
   loadList.addEventListener('click', loadMeteoriteList);
+  showAllCheckbox.addEventListener('change', showAll);
 
 
   function render() {
 
   }
 
+  const gMap = new google.maps.Map(map, {
+    zoom: 4,
+    center: {
+      lat: 0,
+      lng: 0
+    }
+  });
 
   function initMap(meteoriteCoordinates) {
-    const map = new google.maps.Map(this.map, {
-      zoom: 4,
-      center: meteoriteCoordinates
-    });
     const marker = new google.maps.Marker({
       position: meteoriteCoordinates,
-      map: map
+      map: gMap
     })
   }
 
@@ -50,14 +64,32 @@ const meteoriteModule = (function(){
   }
 
   function loadMeteoriteList() {
+
     const meteoriteListFragment = {
-      meteorite: [...meteorites.slice(0, 100)]
+      meteorite: [...meteorites]
     };
     console.log(meteoriteListFragment);
     meteoriteList.innerHTML = Mustache.render(meteoriteListTemplate, meteoriteListFragment);
   }
 
-  return {
-    render: render
+  let gmarkers = [];
+
+  function showAll() {
+    if (showAllCheckbox.checked) {
+      for (let i = 0; i < meteorites.length; i++) {
+        const marker = new google.maps.Marker({
+          position: {
+            lng: meteorites[i].geolocation.coordinates[0],
+            lat: meteorites[i].geolocation.coordinates[1],
+          },
+          map: gMap
+        });
+        gmarkers.push(marker);
+      }
+    } else {
+      for(let i = 0; i < gmarkers.length; i++){
+        gmarkers[i].setMap(null);
+      }
+    }
   }
 })();
